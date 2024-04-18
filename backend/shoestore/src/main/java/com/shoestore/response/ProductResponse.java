@@ -32,6 +32,5 @@ public class ProductResponse extends BaseResponse{
         productResponse.setCreatedAt(product.getCreatedAt());
         productResponse.setUpdatedAt(product.getUpdatedAt());
         return productResponse;
-
     }
 }

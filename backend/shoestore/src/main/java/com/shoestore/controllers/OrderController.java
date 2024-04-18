@@ -1,7 +1,11 @@
 package com.shoestore.controllers;
 
 import com.shoestore.dtos.OrderDTO;
+import com.shoestore.exceptions.DataNotFoundException;
+import com.shoestore.models.Order;
+import com.shoestore.services.Implement.OrderServiceImpl;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -10,7 +14,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
+@RequiredArgsConstructor
 public class OrderController {
+    private final OrderServiceImpl orderService;
     @PostMapping("")
     public ResponseEntity<?> createOrder(
             @Valid @RequestBody OrderDTO orderDTO,
@@ -24,31 +30,43 @@ public class OrderController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            return ResponseEntity.ok("createOrder successfully");
+            Order order = orderService.createOrder(orderDTO);
+            return ResponseEntity.ok(order);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    @GetMapping("/{user_id}") // Thêm biến đường dẫn "user_id"
-    //GET http://localhost:8088/api/v1/orders/4
-    public ResponseEntity<?> getOrders(@Valid @PathVariable("user_id") Long userId) {
+    @GetMapping("/user/{userId}") // Get orders by User
+    public ResponseEntity<?> getOrders(@Valid @PathVariable Long userId) {
         try {
-            return ResponseEntity.ok("Lấy ra danh sách order từ user_id");
+            List<Order> orders = orderService.findOrderByUserId(userId);
+            return ResponseEntity.ok(orders);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/{orderId}") // Get orders by Id
+    public ResponseEntity<?> getOrdersById(@Valid @PathVariable Long orderId) {
+        try {
+            Order order = orderService.getOrder(orderId);
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PutMapping("/{id}")
-    //PUT http://localhost:8088/api/v1/orders/2
-    //công việc của admin
     public ResponseEntity<?> updateOrder(
             @Valid @PathVariable long id,
-            @Valid @RequestBody OrderDTO orderDTO) {
-        return ResponseEntity.ok("Cập nhật thông tin 1 order");
+            @Valid @RequestBody OrderDTO orderDTO) throws DataNotFoundException {
+        Order order = orderService.updateOrder(id, orderDTO);
+        return ResponseEntity.ok(order);
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteOrder(@Valid @PathVariable Long id) {
-        //xóa mềm => cập nhật trường active = false
+    public ResponseEntity<String> deleteOrder(@Valid @PathVariable Long id) throws DataNotFoundException {
+        //Soft delete => set active is FALSE;
+        orderService.deleteOrder(id);
         return ResponseEntity.ok("Order deleted successfully.");
     }
 }
