@@ -2,6 +2,8 @@ package com.shoestore.controllers;
 
 import com.shoestore.dtos.UserDTO;
 import com.shoestore.dtos.UserLoginDTO;
+import com.shoestore.exceptions.DataNotFoundException;
+import com.shoestore.models.User;
 import com.shoestore.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     @PostMapping("/register")
+    // Can we register an "admin" user?
     public ResponseEntity<?> createUser(
             @Valid @RequestBody UserDTO userDTO,
             BindingResult result
@@ -36,8 +39,8 @@ public class UserController {
             if(!userDTO.getPassword().equals(userDTO.getRetypePassword())){
                 return ResponseEntity.badRequest().body("Password does not match");
             }
-            userService.createUser(userDTO);
-            return ResponseEntity.ok("Register successfully");
+            User user = userService.createUser(userDTO);
+            return ResponseEntity.ok(user);
         }  catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -45,9 +48,13 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<String> login(
             @Valid @RequestBody UserLoginDTO userLoginDTO) {
-        // Kiểm tra thông tin đăng nhập và sinh token
-        String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
-        // Trả về token trong response
-        return ResponseEntity.ok(token);
+        // Check User Login and return token
+        try {
+            String token  = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+            return ResponseEntity.ok(token);
+
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

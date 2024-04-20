@@ -8,9 +8,7 @@ import com.shoestore.models.User;
 import com.shoestore.repositories.OrderRepository;
 import com.shoestore.repositories.UserRepository;
 import com.shoestore.services.OrderService;
-import com.shoestore.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 

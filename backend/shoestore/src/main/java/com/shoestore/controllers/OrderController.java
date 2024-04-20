@@ -59,9 +59,13 @@ public class OrderController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateOrder(
             @Valid @PathVariable long id,
-            @Valid @RequestBody OrderDTO orderDTO) throws DataNotFoundException {
-        Order order = orderService.updateOrder(id, orderDTO);
-        return ResponseEntity.ok(order);
+            @Valid @RequestBody OrderDTO orderDTO) {
+        try {
+            Order order = orderService.updateOrder(id, orderDTO);
+            return ResponseEntity.ok(order);
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteOrder(@Valid @PathVariable Long id) throws DataNotFoundException {
