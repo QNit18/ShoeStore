@@ -1,6 +1,6 @@
 package com.shoestore.filters;
 
-import com.shoestore.components.JwtTokenUtil;
+import com.shoestore.components.JwtTokenUtils;
 import com.shoestore.models.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,9 +12,7 @@ import org.modelmapper.internal.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -32,7 +30,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private String apiPrefix;
 
     private final UserDetailsService userDetailsService;
-    private final JwtTokenUtil jwtTokenUtil;
+    private final JwtTokenUtils jwtTokenUtil;
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
@@ -75,7 +73,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of(String.format("%s/products", apiPrefix), "GET"),
                 Pair.of(String.format("%s/categories", apiPrefix), "GET"),
                 Pair.of(String.format("%s/users/login", apiPrefix), "POST"),
-                Pair.of(String.format("%s/users/register", apiPrefix), "POST")
+                Pair.of(String.format("%s/users/register", apiPrefix), "POST"),
+                Pair.of(String.format("%s/roles", apiPrefix), "GET")
         );
         for (Pair<String, String> bypassToken : byPassTokens) {
             if (request.getServletPath().contains(bypassToken.getLeft()) &&
