@@ -1,6 +1,7 @@
 package com.shoestore.controllers;
 
 import com.github.javafaker.Faker;
+import com.shoestore.components.LocalizationUtils;
 import com.shoestore.dtos.ProductDTO;
 import com.shoestore.dtos.ProductImageDTO;
 import com.shoestore.models.Product;
@@ -8,7 +9,9 @@ import com.shoestore.models.ProductImage;
 import com.shoestore.response.ProductListResponse;
 import com.shoestore.response.ProductResponse;
 import com.shoestore.services.ProductService;
+import com.shoestore.utils.MessageKeys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,7 +26,9 @@ import jakarta.validation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -37,6 +42,7 @@ import java.util.UUID;
 public class ProductController {
 
     private final ProductService productService;
+    private final LocalizationUtils localizationUtils;
 
     @PostMapping("")
     public ResponseEntity<?> createProduct(
@@ -68,8 +74,9 @@ public class ProductController {
             Product existingProduct = productService.getProductById(productId);
             files = files == null ? new ArrayList<MultipartFile>() : files;
 
-            if (files.size() > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT){
-                return ResponseEntity.badRequest().body(String.format("You can only upload maximum =%d images for a product",  ProductImage.MAXIMUM_IMAGES_PER_PRODUCT));
+            if (files.size() > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
+                return ResponseEntity.badRequest().body(localizationUtils.
+                        getLocalizedMessaged(MessageKeys.UPLOAD_IMAGES_PRODUCT_ERROR_MAX_5_IMAGES, ProductImage.MAXIMUM_IMAGES_PER_PRODUCT));
             }
 
             List<ProductImage> productImages = new ArrayList<>();
@@ -80,12 +87,12 @@ public class ProductController {
                 // Check file size and format
                 if (file.getSize() > 10 * 1024 * 1024) { // 10MB
                     return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                            .body("File is too large! Maximum size is 10MB");
+                            .body(localizationUtils.getLocalizedMessaged(MessageKeys.UPLOAD_IMAGES_PRODUCT_FILE_LARGE));
                 }
                 String contentType = file.getContentType();
                 if (contentType == null || !contentType.startsWith("image/")) {
                     return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                            .body("File must be an image");
+                            .body(localizationUtils.getLocalizedMessaged(MessageKeys.UPLOAD_IMAGES_PRODUCT_FILE_MUST_BE_IMAGE));
                 }
                 // Save file and update into DTO
                 String filename = storeFile(file);
@@ -101,6 +108,24 @@ public class ProductController {
             return ResponseEntity.ok().body(productImages);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/images/{imageName}")
+    public ResponseEntity<?> viewImage(@PathVariable String imageName){
+        Path imagePath = Paths.get("uploads/"+imageName);
+        try {
+            UrlResource resource = new UrlResource(imagePath.toUri());
+
+            if (resource.exists()){
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(resource);
+            }else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (MalformedURLException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -166,7 +191,7 @@ public class ProductController {
     public ResponseEntity<?> updateProduct(
             @PathVariable long productId,
             @RequestBody ProductDTO productDTO
-    ){
+    ) {
         try {
             Product productUpdate = productService.updateProduct(productId, productDTO);
             return ResponseEntity.ok(productUpdate);
@@ -177,11 +202,11 @@ public class ProductController {
 
     // Fake product
     @PostMapping("/generateFakeProducts")
-    public ResponseEntity<String> generateFakeProducts(){
+    public ResponseEntity<String> generateFakeProducts() {
         Faker faker = new Faker();
-        for (int i = 0 ; i < 1_000_000; i++){
+        for (int i = 0; i < 1_000_000; i++) {
             String productName = faker.commerce().productName();
-            if (productService.existsByName(productName)){
+            if (productService.existsByName(productName)) {
                 continue;
             }
             ProductDTO productDTO = ProductDTO.builder()

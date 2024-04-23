@@ -1,6 +1,6 @@
 package com.shoestore.services.Implement;
 
-import com.shoestore.components.JwtTokenUtil;
+import com.shoestore.components.JwtTokenUtils;
 import com.shoestore.dtos.UserDTO;
 import com.shoestore.exceptions.DataNotFoundException;
 import com.shoestore.exceptions.PermissionDenyException;
@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenUtil jwtTokenUtil;
+    private final JwtTokenUtils jwtTokenUtil;
     private final AuthenticationManager authenticationManager;
 
 

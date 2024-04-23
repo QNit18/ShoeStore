@@ -1,9 +1,11 @@
 package com.shoestore.controllers;
 
+import com.shoestore.components.LocalizationUtils;
 import com.shoestore.dtos.OrderDTO;
 import com.shoestore.exceptions.DataNotFoundException;
 import com.shoestore.models.Order;
 import com.shoestore.services.Implement.OrderServiceImpl;
+import com.shoestore.utils.MessageKeys;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderServiceImpl orderService;
+    private final LocalizationUtils localizationUtils;
+
     @PostMapping("")
     public ResponseEntity<?> createOrder(
             @Valid @RequestBody OrderDTO orderDTO,
@@ -71,6 +75,6 @@ public class OrderController {
     public ResponseEntity<String> deleteOrder(@Valid @PathVariable Long id) throws DataNotFoundException {
         //Soft delete => set active is FALSE;
         orderService.deleteOrder(id);
-        return ResponseEntity.ok("Order deleted successfully.");
+        return ResponseEntity.ok(localizationUtils.getLocalizedMessaged(MessageKeys.DELETE_ORDER_SUCCESSFULLY, id));
     }
 }

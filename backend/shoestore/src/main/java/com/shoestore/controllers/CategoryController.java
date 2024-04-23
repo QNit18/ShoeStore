@@ -2,7 +2,11 @@ package com.shoestore.controllers;
 
 import com.shoestore.dtos.CategoryDTO;
 import com.shoestore.models.Category;
+import com.shoestore.response.CreateCategoryResponse;
+import com.shoestore.response.UpdateCategoryResponse;
 import com.shoestore.services.Implement.CategoryServiceImpl;
+import com.shoestore.components.LocalizationUtils;
+import com.shoestore.utils.MessageKeys;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +23,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryServiceImpl categoryService;
+    private final LocalizationUtils localizationUtils;
     @PostMapping("")
     //Nếu tham số truyền vào là 1 object thì sao ? => Data Transfer Object = Request Object
-    public ResponseEntity<?> createCategory(
+    public ResponseEntity<CreateCategoryResponse> createCategory(
             @Valid @RequestBody CategoryDTO categoryDTO,
             BindingResult result) {
         if(result.hasErrors()) {
@@ -29,10 +34,14 @@ public class CategoryController {
                     .stream()
                     .map(FieldError::getDefaultMessage)
                     .toList();
-            return ResponseEntity.badRequest().body(errorMessages);
+            return ResponseEntity.badRequest().body(CreateCategoryResponse.builder()
+                            .message(localizationUtils.getLocalizedMessaged(MessageKeys.CREATE_CATEGORY_FAILED))
+                    .build());
         }
         categoryService.createCategory(categoryDTO);
-        return ResponseEntity.ok("Insert category successfully");
+        return ResponseEntity.ok(CreateCategoryResponse.builder()
+                        .message(localizationUtils.getLocalizedMessaged(MessageKeys.CREATE_CATEGORY_SUCCESSFULLY))
+                .build());
     }
 
     //Hiện tất cả các categories
@@ -46,16 +55,18 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateCategory(
+    public ResponseEntity<UpdateCategoryResponse> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody CategoryDTO categoryDTO
     ) {
         categoryService.updateCategory(id, categoryDTO);
-        return ResponseEntity.ok("Update category successfully");
+        return ResponseEntity.ok(UpdateCategoryResponse.builder()
+                        .message(localizationUtils.getLocalizedMessaged(MessageKeys.UPDATE_CATEGORY_SUCCESSFULLY))
+                .build());
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.ok("Delete category with id: "+id+" successfully");
+        return ResponseEntity.ok(localizationUtils.getLocalizedMessaged(MessageKeys.DELETE_CATEGORY_SUCCESSFULLY));
     }
 }

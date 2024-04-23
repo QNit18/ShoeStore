@@ -1,11 +1,13 @@
 package com.shoestore.controllers;
 
+import com.shoestore.components.LocalizationUtils;
 import com.shoestore.dtos.OrderDetailDTO;
 import com.shoestore.exceptions.DataNotFoundException;
 import com.shoestore.models.OrderDetail;
 import com.shoestore.repositories.OrderDetailRepository;
 import com.shoestore.response.OrderDetailResponse;
 import com.shoestore.services.Implement.OrderDetailServiceImpl;
+import com.shoestore.utils.MessageKeys;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderDetailController {
     private final OrderDetailServiceImpl orderDetailService;
-    private final OrderDetailRepository orderDetailRepository;
+    private final LocalizationUtils localizationUtils;
+
 
     @PostMapping("")
     public ResponseEntity<?> createOrderDetail(
@@ -65,6 +68,6 @@ public class OrderDetailController {
     public ResponseEntity<?> deleteOrderDetail(
             @Valid @PathVariable("id") Long id) {
         orderDetailService.deleteById(id);
-        return ResponseEntity.ok().body("Delete order detail with id: "+ id + " successfully");
+        return ResponseEntity.ok().body(localizationUtils.getLocalizedMessaged(MessageKeys.DELETE_ORDER_DETAIL_SUCCESSFULLY, id));
     }
 }
